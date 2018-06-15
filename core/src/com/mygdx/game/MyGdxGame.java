@@ -60,11 +60,23 @@ public class MyGdxGame extends ApplicationAdapter {
                 batch = new SpriteBatch();
                 for(int n = 1; n <= 64; n++){ //creates an 8 by 8 grid of square objects
                      int squareColor;
-                     if (n%2==0){
-                          squareColor=0;
+                     if (rowNum%2==0)
+                     {
+                        if (n%2==0){
+                             squareColor=0;
+                        }
+                        else{
+                             squareColor=1;
+                        }
                      }
-                     else{
-                          squareColor=1;
+                     else
+                     {
+                        if (n%2==0){
+                            squareColor=1;
+                        }
+                        else{
+                            squareColor=0;
+                        }   
                      }
                      if (squareX>=640){
                          squareX=0;
