@@ -51,7 +51,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	Texture img;
         int squareSize=640/8; //setting size of chessboard squares
 	ArrayList <Square> squareObjList = new ArrayList();
-        ArrayList <Sprite> spriteSquareList = new ArrayList();
+        ArrayList <Texture> spriteSquareList = new ArrayList();
 	@Override
 	public void create () { 
             SpriteBatch batch = new SpriteBatch();
@@ -70,29 +70,38 @@ public class MyGdxGame extends ApplicationAdapter {
                 for(int i=0; i<squareObjList.size(); i++){
                      Square currentSquare = squareObjList.get(i);
                      Pixmap currentSquareImg = currentSquare.getPixmapSquare();
+                     currentSquareImg.setColor(Color.WHITE);
+                     currentSquareImg.fill();
                      Texture SquareImg = new Texture(currentSquareImg);
-                     Sprite sprite = new Sprite(SquareImg);
-                     spriteSquareList.add(sprite);
+                     //Sprite sprite = new Sprite(SquareImg);
+                     spriteSquareList.add(SquareImg);
+                     
                 }
-                
+                //Pixmap pixmap = new Pixmap(640/8, 640/8,Pixmap.Format.RGBA8888);
+                //pixmap.setColor(Color.BLACK);
+                //pixmap.fill();
+                //Texture texture = new Texture(pixmap);
+                //pixmap.dispose();
+                //Sprite sprite = new Sprite(texture);
 	}
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(0, 0, 0, 0);
+		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-                for(int i=0; i<squareObjList.size(); i++){
-                    Square currentSquare = squareObjList.get(i);
-                    batch.begin();      
-                    spriteSquareList.get(i).setPosition(currentSquare.getX(),currentSquare.getY());
-                    spriteSquareList.get(i).draw(batch);
-                    batch.end();
-                }
+               int i=0;
+               Square currentSquare = squareObjList.get(i);  
+               batch.begin();    
+               batch.draw(spriteSquareList.get(i),0,0);
+               batch.end();
+               i++;
+               if (i==squareObjList.size()){
+                    i=0;
+               }
 	}
 	
 	@Override
 	public void dispose () {
 		batch.dispose();
-		img.dispose();
 	}
 }
