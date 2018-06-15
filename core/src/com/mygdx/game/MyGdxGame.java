@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import java.util.ArrayList;
+import java.lang.Math;
 
 class Square
 {
@@ -52,6 +53,8 @@ public class MyGdxGame extends ApplicationAdapter {
         ArrayList <Square> squareObjList = new ArrayList();
         ArrayList <Sprite> spriteSquareList = new ArrayList();
         Sprite cat;
+        int squareX=0;
+        int rowNum=0;
 	@Override
 	public void create () { 
                 batch = new SpriteBatch();
@@ -63,18 +66,23 @@ public class MyGdxGame extends ApplicationAdapter {
                      else{
                           squareColor=1;
                      }
-                     int squareX=(n%8)*squareSize;
-                     int squareY=(n%8)*squareSize;
+                     if (squareX>=640){
+                         squareX=0;
+                     }
+                     int squareY=rowNum*squareSize;
+                     //int squareY =((int)(n/8)-1)*squareSize;
+                     System.out.println(n+":"+"("+squareX + "," + squareY + ")");
                      squareObjList.add(new Square(squareX,squareY,squareColor));
+                     squareX =squareX+squareSize;
+                     if (n%8==0){
+                         rowNum++;
+                     }
                 }
                 for(int i=0; i<squareObjList.size(); i++){
                      Square currentSquare = squareObjList.get(i);
                      Pixmap currentSquareImg = currentSquare.getPixmapSquare();
-                     currentSquareImg.setColor(Color.WHITE);
-                     currentSquareImg.fill();
                      Texture SquareImg = new Texture(currentSquareImg);
                      Sprite squareSprite = new Sprite(SquareImg);
-                     //Sprite sprite = new Sprite(SquareImg);
                      spriteSquareList.add(squareSprite);
                      
                 } 
@@ -82,7 +90,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(0, 0, 0, 1);
+		Gdx.gl.glClearColor(1, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
              
                batch.begin();    
@@ -90,6 +98,7 @@ public class MyGdxGame extends ApplicationAdapter {
                    Square currentSquare=squareObjList.get(i);
                    Sprite drawSquare = spriteSquareList.get(i);
                    drawSquare.setPosition(currentSquare.getX(), currentSquare.getY());
+                   
                    drawSquare.draw(batch);
 ;               }
                batch.end();
