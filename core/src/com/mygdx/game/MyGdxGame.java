@@ -48,14 +48,14 @@ class Square
 }
 public class MyGdxGame extends ApplicationAdapter {
 	SpriteBatch batch;
-	Texture img;
         int squareSize=640/8; //setting size of chessboard squares
-	ArrayList <Square> squareObjList = new ArrayList();
-        ArrayList <Texture> spriteSquareList = new ArrayList();
+        ArrayList <Square> squareObjList = new ArrayList();
+        ArrayList <Sprite> spriteSquareList = new ArrayList();
+        Sprite cat;
 	@Override
 	public void create () { 
-            SpriteBatch batch = new SpriteBatch();
-                for(int n = 1; n == 64; n++){ //creates an 8 by 8 grid of square objects
+                batch = new SpriteBatch();
+                for(int n = 1; n <= 64; n++){ //creates an 8 by 8 grid of square objects
                      int squareColor;
                      if (n%2==0){
                           squareColor=0;
@@ -66,38 +66,34 @@ public class MyGdxGame extends ApplicationAdapter {
                      int squareX=(n%8)*squareSize;
                      int squareY=(n%8)*squareSize;
                      squareObjList.add(new Square(squareX,squareY,squareColor));
-                }  
+                }
                 for(int i=0; i<squareObjList.size(); i++){
                      Square currentSquare = squareObjList.get(i);
                      Pixmap currentSquareImg = currentSquare.getPixmapSquare();
                      currentSquareImg.setColor(Color.WHITE);
                      currentSquareImg.fill();
                      Texture SquareImg = new Texture(currentSquareImg);
+                     Sprite squareSprite = new Sprite(SquareImg);
                      //Sprite sprite = new Sprite(SquareImg);
-                     spriteSquareList.add(SquareImg);
+                     spriteSquareList.add(squareSprite);
                      
-                }
-                //Pixmap pixmap = new Pixmap(640/8, 640/8,Pixmap.Format.RGBA8888);
-                //pixmap.setColor(Color.BLACK);
-                //pixmap.fill();
-                //Texture texture = new Texture(pixmap);
-                //pixmap.dispose();
-                //Sprite sprite = new Sprite(texture);
+                } 
 	}
 
 	@Override
 	public void render () {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-               int i=0;
-               Square currentSquare = squareObjList.get(i);  
+             
                batch.begin();    
-               batch.draw(spriteSquareList.get(i),0,0);
+               for (int i=0; i<squareObjList.size(); i++){
+                   Square currentSquare=squareObjList.get(i);
+                   Sprite drawSquare = spriteSquareList.get(i);
+                   drawSquare.setPosition(currentSquare.getX(), currentSquare.getY());
+                   drawSquare.draw(batch);
+;               }
                batch.end();
-               i++;
-               if (i==squareObjList.size()){
-                    i=0;
-               }
+
 	}
 	
 	@Override
