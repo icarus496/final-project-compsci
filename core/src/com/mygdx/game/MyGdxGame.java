@@ -572,11 +572,28 @@ public class MyGdxGame extends ApplicationAdapter {
                 for (int i=0; i<squareObjList.size(); i++){    
                     spriteSquareList.add(squareObjList.get(i).getSpriteSquare());  
                 } 
-            for (int i=0; i<9; i++){
-                pawnList.add(new Pawn(i,2,1));
-                pawnList.add(new Pawn(i,7,0));
+            //for (int i=1; i<9; i++){
+               // pawnList.add(new Pawn(i,2,1));
+                //pawnList.add(new Pawn(i,7,0));
+                //pieceList.addAll(pawnList);
+            //}
+                pawnList.add(new Pawn(1,2,1));
+                pawnList.add(new Pawn(2,2,1));
+                pawnList.add(new Pawn(3,2,1));
+                pawnList.add(new Pawn(4,2,1));
+                pawnList.add(new Pawn(5,2,1));
+                pawnList.add(new Pawn(6,2,1));
+                pawnList.add(new Pawn(7,2,1));
+                pawnList.add(new Pawn(8,2,1));
+                pawnList.add(new Pawn(1,7,0));
+                pawnList.add(new Pawn(2,7,0));
+                pawnList.add(new Pawn(3,7,0));
+                pawnList.add(new Pawn(4,7,0));
+                pawnList.add(new Pawn(5,7,0));
+                pawnList.add(new Pawn(6,7,0));
+                pawnList.add(new Pawn(7,7,0));
+                pawnList.add(new Pawn(8,7,0));
                 pieceList.addAll(pawnList);
-            }
                 knightList.add(new Knight(2,1,1));
                 knightList.add(new Knight(7,1,1));
                 knightList.add(new Knight(2,8,0));
@@ -628,7 +645,6 @@ public class MyGdxGame extends ApplicationAdapter {
                }
                for (int i=0; i<pawnList.size(); i++){
                    pawnList.get(i).createLegalMoves();
-                   pawnList.get(i).getLegalMoves();
                }
                for (int i=0; i<bishopList.size(); i++){
                    bishopList.get(i).createLegalMoves();
@@ -706,13 +722,10 @@ public class MyGdxGame extends ApplicationAdapter {
                        if (currentX == getCursorX() && currentY == getCursorY()){ //checking if you clicked on a highlighted square
                            for (int j=0; j<pieceList.size(); j++){ //checking if there's an enemy piece on the square you clicked. This is what allows you to take pieces. 
                                Piece checkingPiece = pieceList.get(j);
-                               if (checkingPiece.isPieceAt(currentX, currentY) == 1){
-                                   pieceList.remove(j);
+                               if ((checkingPiece.isPieceAt(currentX, currentY) == 1) && (checkingPiece.getColor() != selectedPiece.getColor())){ //if there's a piece at the square we're checking on
                                    if (checkingPiece instanceof Pawn) {
-                                        int pawnIndex = pawnList.indexOf((Pawn)checkingPiece);
-                                        System.out.println(pawnIndex + "aa");
-                                        pawnSpriteList.remove(pawnIndex); //removes the piece from the spritelist
-                                        pawnList.remove(pawnIndex); //removes the pawn from the pawnlist
+                                        pawnSpriteList.remove(pawnList.indexOf(((Pawn)checkingPiece))); //removes the piece from the spritelist
+                                        pawnList.remove(pawnList.indexOf((Pawn)checkingPiece)); //removes the pawn from the pawnlist
                                    }
                                    if (checkingPiece instanceof Knight) {
                                         knightSpriteList.remove(knightList.indexOf(((Knight)checkingPiece))); //removes the piece from the spritelist
@@ -734,7 +747,8 @@ public class MyGdxGame extends ApplicationAdapter {
                                         kingSpriteList.remove(kingList.indexOf(((King)checkingPiece))); //removes the piece from the spritelist
                                         kingList.remove(kingList.indexOf((King)checkingPiece)); //removes the pawn from the pawnlist
                                    }
-                                  
+                                  pieceList.remove(j);
+                                  continue;
                                }
                            }
                            selectedPiece.setPos(getCursorX(), getCursorY());
