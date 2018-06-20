@@ -288,41 +288,98 @@ public class MyGdxGame extends ApplicationAdapter {
              this.legalMoves = new ArrayList<int[]>();
              int newX = this.pieceX+1;
              int newY = this.pieceY+1;
-             while (newX<9 && newY<9){
-                int[] xyCoOrds = new int[2];
-                xyCoOrds[0]=newX;
-                xyCoOrds[1]=newY;
-                legalMoves.add(xyCoOrds);
-                newX++;
-                newY++;
-             }
+             up_to_left:
+                while (newX<9 && newY<9){
+                   for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break up_to_left;
+                       }
+
+                   }
+                   int[] xyCoOrds = new int[2];
+                   xyCoOrds[0]=newX;
+                   xyCoOrds[1]=newY;
+                   legalMoves.add(xyCoOrds);
+                   for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break up_to_left;
+                       }
+
+                   }
+                   newX++;
+                   newY++;
+                }
              newX=this.pieceX-1;
              newY=this.pieceY+1;
-             while (newX>0 && newY<9){
-                int[] xyCoOrds = new int[2];
-                xyCoOrds[0]=newX;
-                xyCoOrds[1]=newY;
-                legalMoves.add(xyCoOrds);
-                newX--;
-                newY++;
-                 }
+             up_to_right:
+                while (newX>0 && newY<9){
+                   for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break up_to_right;
+                       }
+                   }
+                   int[] xyCoOrds = new int[2];
+                   xyCoOrds[0]=newX;
+                   xyCoOrds[1]=newY;
+                   legalMoves.add(xyCoOrds);
+                   for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break up_to_right;
+                       }
+
+                   }
+                   newX--;
+                   newY++;
+                }
              newX=this.pieceX-1;
              newY=this.pieceY-1;
-             while (newX>0 && newY>0){
-                int[] xyCoOrds = new int[2];
-                xyCoOrds[0]=newX;
-                xyCoOrds[1]=newY;
-                legalMoves.add(xyCoOrds);
-                newX--;
-                newY--;
-             }
+             down_to_left:
+                while (newX>0 && newY>0){
+                   for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY &&checkedPiece.getColor() == this.pieceColor){
+                           break down_to_left;
+                       }
+                   }
+                   int[] xyCoOrds = new int[2];
+                   xyCoOrds[0]=newX;
+                   xyCoOrds[1]=newY;
+                   legalMoves.add(xyCoOrds);
+                   for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break down_to_left;
+                       }
+
+                   }
+                   newX--;
+                   newY--;
+                }
              newX=this.pieceX+1;
              newY=this.pieceY-1;
+             down_to_right:
              while (newX<9 && newY>0){
+                 for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY &&checkedPiece.getColor() == this.pieceColor){
+                           break down_to_right;
+                       }
+                 }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break down_to_right;
+                       }
+
+                   }
                 newX++;
                 newY--;
              }
@@ -747,6 +804,7 @@ public class MyGdxGame extends ApplicationAdapter {
                                         kingSpriteList.remove(kingList.indexOf(((King)checkingPiece))); //removes the piece from the spritelist
                                         kingList.remove(kingList.indexOf((King)checkingPiece)); //removes the pawn from the pawnlist
                                    }
+
                                   pieceList.remove(j);
                                   continue;
                                }
