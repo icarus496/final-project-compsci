@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 import java.lang.Thread;
 import java.util.Collections;
+import java.util.Random;
 
 
 public class MyGdxGame extends ApplicationAdapter {
@@ -25,8 +26,8 @@ public class MyGdxGame extends ApplicationAdapter {
         int rowNum=0;
         int mouseClicked=0; //quickfix for a problem with click detection
         int n=0; //ensuring that a square changes color the right way
-        int turnNumber = 0; //keeping track of how many turns it's been
-        int lastTurnNumber = -1;
+        int turnNumber = 1; //keeping track of how many turns it's been
+        int lastTurnNumber = 0;
         int legalMovesShown=0;
         ArrayList <Pawn> pawnList = new ArrayList();
         ArrayList <Knight> knightList = new ArrayList();
@@ -161,7 +162,8 @@ public class MyGdxGame extends ApplicationAdapter {
     
     
     
-    class Pawn extends Piece{
+    class Pawn extends Piece
+    {
          Pawn(int pieceX, int pieceY, int pieceColor){
               super(pieceX, pieceY, pieceColor);
               this.pieceX=pieceX; //1 to 8
@@ -183,10 +185,16 @@ public class MyGdxGame extends ApplicationAdapter {
          }
          void createLegalMoves(){
              this.legalMoves = new ArrayList();
-             if (this.pieceColor == 0){
+             if (this.pieceColor == 0){ //black
                  int newY = this.pieceY - 1;
                  int newX = this.pieceX;
+                 int firstTurnY = 5;
                  int[] move1 = {newX, newY};
+                 int[] move3 = {newX, firstTurnY};
+                 if (this.pieceY == 7)
+                 {
+                      legalMoves.add(move3);
+                 }
                  this.legalMoves.add(move1);
                  for (int i = 0; i < pieceList.size();i++){
                      Piece currentPiece=pieceList.get(i);
@@ -200,15 +208,24 @@ public class MyGdxGame extends ApplicationAdapter {
                      }
                      if ((newY == currentPiece.getPieceY()) && newX == currentPiece.getPieceX()){
                          this.legalMoves.remove(move1);
+                         this.legalMoves.remove(move3);
+                     }
+                     if (5 == currentPiece.getPieceY() && newX == currentPiece.getPieceX()){
+                          this.legalMoves.remove(move3);
                      }
                  }
              }
-             if (this.pieceColor == 1){
+             if (this.pieceColor == 1){ //white
                  int newY = this.pieceY + 1;
                  int newX = this.pieceX;
+                 int firstTurnY = this.pieceY+2;
                  int[] move1 = {newX, newY};
+                 int[] move3 = {newX, firstTurnY};
                  this.legalMoves.add(move1);
-                 for (int i = 0; i < pieceList.size();i++){
+                 if (this.pieceY ==2){
+                    this.legalMoves.add(move3);
+                 }
+                 for (int i = 0; i < pieceList.size();i++){ //looking through the list of pieces
                      Piece currentPiece=pieceList.get(i);
                      if ((this.pieceY+1==currentPiece.getPieceY()) && (this.pieceX-1 == currentPiece.getPieceX())){
                          int[] move2 = {this.pieceX-1,this.pieceY+1};
@@ -220,13 +237,19 @@ public class MyGdxGame extends ApplicationAdapter {
                      }
                      if ((newY == currentPiece.getPieceY()) && newX == currentPiece.getPieceX()){
                          this.legalMoves.remove(move1);
+                         this.legalMoves.remove(move3);
                      }
+                     if (4 == currentPiece.getPieceY() && newX == currentPiece.getPieceX()){
+                          this.legalMoves.remove(move3);
+                     }
+                     
+                   }    
                  }
 
              }
          }
-    }
-    class Knight extends Piece{
+    class Knight extends Piece
+    {
          Knight(int pieceX, int pieceY, int pieceColor){
               super(pieceX, pieceY, pieceColor);
               this.pieceX=pieceX; //1 to 8
@@ -413,37 +436,97 @@ public class MyGdxGame extends ApplicationAdapter {
              this.legalMoves = new ArrayList<int[]>();
              int newX = this.pieceX+1;
              int newY = this.pieceY;
+             right:
              while (newX<9){
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break right;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break right;
+                       }
+
+                   }
                 newX++;
              }
              newX=this.pieceX-1;
              newY=this.pieceY;
+             left:
              while (newX>0){
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break left;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break left;
+                       }
+
+                   }
                 newX--;
                  }
              newX=this.pieceX;
              newY=this.pieceY-1;
+             down:
              while (newY>0){
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break down;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break down;
+                       }
+
+                   }
                 newY--;
              }
              newY=this.pieceY+1;
+             up:
              while (newY<9){
+             for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break up;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break up;
+                       }
+
+                   }
                 newY++;
              }
              }
@@ -460,7 +543,7 @@ public class MyGdxGame extends ApplicationAdapter {
         Sprite getSprite(){
               Texture Texture = new Texture("queen_w.png");
               Sprite thisPiece = new Sprite(Texture);
-              thisPiece.setPosition((this.pieceX*80)-80,(this.pieceY*80)-80); //changing object x and y into rendering x and y
+              thisPiece.setPosition((this.pieceX*80)-80,(this.pieceY*80)-80); //changing object coordiante system into libGDX native coordinate system
               if (this.pieceColor==1){
                 thisPiece.setColor(1,1,1,1);
               }
@@ -474,76 +557,197 @@ public class MyGdxGame extends ApplicationAdapter {
              this.legalMoves = new ArrayList<int[]>();
              int newX = this.pieceX+1;
              int newY = this.pieceY;
+             right:
              while (newX<9){
+                //I do this next bit over and over, it's just to exclude squares that the piece can't move to. Yes, I should have made it a method, but I didn't realise that till now  
+                for (int i=0; i<pieceList.size(); i++){ 
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break right;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break right;
+                       }
+
+                   }
                 newX++;
              }
              newX=this.pieceX-1;
              newY=this.pieceY;
+             left:
              while (newX>0){
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break left;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                      for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break left;
+                       }
+
+                   }
                 newX--;
                  }
              newX=this.pieceX;
              newY=this.pieceY-1;
+             down:
              while (newY>0){
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break down;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break down;
+                       }
+
+                   }
                 newY--;
              }
              newY=this.pieceY+1;
+             up:
              while (newY<9){
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break up;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break up;
+                       }
+
+                   }
                 newY++;  
              }
              newX = this.pieceX+1;
              newY = this.pieceY+1;
+             upLeft:
              while (newX<9 && newY<9){
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break upLeft;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break upLeft;
+                       }
+
+                   }
                 newX++;
                 newY++;
              }
              newX=this.pieceX-1;
              newY=this.pieceY+1;
+             upRight:
              while (newX>0 && newY<9){
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break upRight;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break upRight;
+                       }
+
+                   }
                 newX--;
                 newY++;
                  }
              newX=this.pieceX-1;
              newY=this.pieceY-1;
+             downLeft:
              while (newX>0 && newY>0){
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break downLeft;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break downLeft;
+                       }
+
+                   }
                 newX--;
                 newY--;
              }
              newX=this.pieceX+1;
              newY=this.pieceY-1;
+             downRight:
              while (newX<9 && newY>0){
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() == this.pieceColor){
+                           break downRight;
+                       }
+
+                   }
                 int[] xyCoOrds = new int[2];
                 xyCoOrds[0]=newX;
                 xyCoOrds[1]=newY;
                 legalMoves.add(xyCoOrds);
+                for (int i=0; i<pieceList.size(); i++){
+                       Piece checkedPiece = pieceList.get(i);
+                       if (checkedPiece.getPieceX() == newX && checkedPiece.getPieceY() == newY && checkedPiece.getColor() != this.pieceColor){
+                           break downRight;
+                       }
+
+                   }
                 newX++;
                 newY--;
              }
@@ -629,11 +833,6 @@ public class MyGdxGame extends ApplicationAdapter {
                 for (int i=0; i<squareObjList.size(); i++){    
                     spriteSquareList.add(squareObjList.get(i).getSpriteSquare());  
                 } 
-            //for (int i=1; i<9; i++){
-               // pawnList.add(new Pawn(i,2,1));
-                //pawnList.add(new Pawn(i,7,0));
-                //pieceList.addAll(pawnList);
-            //}
                 pawnList.add(new Pawn(1,2,1));
                 pawnList.add(new Pawn(2,2,1));
                 pawnList.add(new Pawn(3,2,1));
@@ -718,6 +917,57 @@ public class MyGdxGame extends ApplicationAdapter {
                }
                lastTurnNumber++;
                }
+               if (turnNumber%2 == 0){
+                    ArrayList <int[]> availableMoves = new ArrayList();
+                    int listConfirmed = 0;
+                    while(listConfirmed == 0){
+                    ArrayList <Piece> blackPieces = new ArrayList();
+                    for(int i = 0; i < pieceList.size(); i++){
+                         if (pieceList.get(i).getColor() == 1){
+                              blackPieces.add(pieceList.get(i));
+                              }
+                    }
+                    int selectPiece = (int)(Math.random() * blackPieces.size());
+                    Piece pieceToMove = blackPieces.get(selectPiece);
+                    availableMoves.addAll(selectedPiece.getLegalMoves());
+                    if (availableMoves.size() == 0){
+                         continue;
+                    }
+                    else{
+                         listConfirmed = 1;
+                    }   
+                    }
+                    int selectedMove = (int)(Math.random()*availableMoves.size());
+                    selectedPiece.setPos(availableMoves.get(selectedMove)[0], availableMoves.get(selectedMove)[1]);
+                    if (selectedPiece instanceof Pawn){
+                         int index = pawnList.indexOf(selectedPiece);
+                         pawnSpriteList.set(index, ((Pawn)selectedPiece).getSprite());
+                    }
+                    if (selectedPiece instanceof Bishop) {
+                         int index = bishopList.indexOf(selectedPiece);
+                         bishopSpriteList.set(index, ((Bishop)selectedPiece).getSprite());
+                    }
+                    if (selectedPiece instanceof Knight) {
+                         int index = knightList.indexOf(selectedPiece);
+                         knightSpriteList.set(index, ((Knight)selectedPiece).getSprite());
+                    }
+                    if (selectedPiece instanceof Rook) {
+                          int index = rookList.indexOf(selectedPiece);
+                          rookSpriteList.set(index, ((Rook)selectedPiece).getSprite());
+                    }
+                    if (selectedPiece instanceof Queen) {
+                          int index = queenList.indexOf(selectedPiece);
+                          queenSpriteList.set(index, ((Queen)selectedPiece).getSprite());
+                    }
+                    if (selectedPiece instanceof King) {
+                          int index = kingList.indexOf(selectedPiece);
+                          kingSpriteList.set(index, ((King)selectedPiece).getSprite());
+                    }
+                    turnNumber++;
+                         
+                         
+               }
+               else{
                if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //checking if mouse is clicked
                    try        //waiting a bit so it doesn't register two clicks
                    {
@@ -777,6 +1027,7 @@ public class MyGdxGame extends ApplicationAdapter {
                        int currentX = currentSquare.getxRow();
                        int currentY = currentSquare.getyRow();
                        if (currentX == getCursorX() && currentY == getCursorY()){ //checking if you clicked on a highlighted square
+                           System.out.println("click");
                            for (int j=0; j<pieceList.size(); j++){ //checking if there's an enemy piece on the square you clicked. This is what allows you to take pieces. 
                                Piece checkingPiece = pieceList.get(j);
                                if ((checkingPiece.isPieceAt(currentX, currentY) == 1) && (checkingPiece.getColor() != selectedPiece.getColor())){ //if there's a piece at the square we're checking on
@@ -786,23 +1037,23 @@ public class MyGdxGame extends ApplicationAdapter {
                                    }
                                    if (checkingPiece instanceof Knight) {
                                         knightSpriteList.remove(knightList.indexOf(((Knight)checkingPiece))); //removes the piece from the spritelist
-                                        knightList.remove(knightList.indexOf((Knight)checkingPiece)); //removes the pawn from the pawnlist
+                                        knightList.remove(knightList.indexOf((Knight)checkingPiece)); //removes the knight from the pawnlist
                                    }
                                    if (checkingPiece instanceof Bishop) {
                                         bishopSpriteList.remove(bishopList.indexOf(((Bishop)checkingPiece))); //removes the piece from the spritelist
-                                        bishopList.remove(bishopList.indexOf((Bishop)checkingPiece)); //removes the pawn from the pawnlist
+                                        bishopList.remove(bishopList.indexOf((Bishop)checkingPiece)); //removes the bishop from the list
                                    }
                                    if (checkingPiece instanceof Rook) {
                                         rookSpriteList.remove(rookList.indexOf(((Rook)checkingPiece))); //removes the piece from the spritelist
-                                        rookList.remove(rookList.indexOf((Rook)checkingPiece)); //removes the pawn from the pawnlist
+                                        rookList.remove(rookList.indexOf((Rook)checkingPiece)); //removes the rook from the list
                                    }
                                    if (checkingPiece instanceof Queen) {
                                         queenSpriteList.remove(queenList.indexOf(((Queen)checkingPiece))); //removes the piece from the spritelist
-                                        queenList.remove(queenList.indexOf((Queen)checkingPiece)); //removes the pawn from the pawnlist
+                                        queenList.remove(queenList.indexOf((Queen)checkingPiece)); //removes the queen from the list
                                    }
                                    if (checkingPiece instanceof King) {
                                         kingSpriteList.remove(kingList.indexOf(((King)checkingPiece))); //removes the piece from the spritelist
-                                        kingList.remove(kingList.indexOf((King)checkingPiece)); //removes the pawn from the pawnlist
+                                        kingList.remove(kingList.indexOf((King)checkingPiece)); //removes the king from the list
                                    }
 
                                   pieceList.remove(j);
@@ -834,7 +1085,8 @@ public class MyGdxGame extends ApplicationAdapter {
                                int index = kingList.indexOf((King)selectedPiece);
                                kingSpriteList.set(index,((King)selectedPiece).getSprite());
                            }
-                           turnNumber++;
+                           System.out.println("wtf" + turnNumber);
+                       turnNumber++;
                        }
                        if (legalMovesShown == 0){ //resetting square colors
                            if (currentSquare.getyRow() % 2 == 0) { //if row is even
@@ -848,9 +1100,10 @@ public class MyGdxGame extends ApplicationAdapter {
                            int squareIndex = squareObjList.indexOf(currentSquare); //finding the index of the selected square
                            spriteSquareList.set(squareIndex, currentSquare.getSpriteSquare()); //adding the changed square to the list to be drawn
                            mouseClicked = 0;
-                       }   
-                   }
+                       }  
+                                      }
                    legalMoveSquares = new ArrayList<Square>(); //clearing legalMoveSquares list
+               }
                }
                batch.enableBlending();
                batch.begin();    
