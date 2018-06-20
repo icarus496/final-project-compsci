@@ -121,7 +121,7 @@ public class MyGdxGame extends ApplicationAdapter {
          int pieceX;
          int pieceY;
          int[] currSquare;
-         int pieceColor; //white=0, black=1
+         int pieceColor; //white=1, black=0
          ArrayList<int[]> legalMoves;
          Piece(int pieceX, int pieceY, int pieceColor){
               this.pieceX=pieceX;
@@ -239,6 +239,9 @@ public class MyGdxGame extends ApplicationAdapter {
                          this.legalMoves.remove(move1);
                          this.legalMoves.remove(move3);
                      }
+                     if (newY >=9 || newX >=9){
+                         this.legalMoves.remove(move1);
+                     }
                      if (4 == currentPiece.getPieceY() && newX == currentPiece.getPieceX()){
                           this.legalMoves.remove(move3);
                      }
@@ -281,9 +284,11 @@ public class MyGdxGame extends ApplicationAdapter {
              int[] move8 = {this.pieceX-2, this.pieceY-1};
              int[][] moves = {move1, move2, move3, move4, move5, move6, move7, move8};
              Collections.addAll(this.legalMoves, moves);
-             
-             
-
+             for (int i = 0; i<8; i++){
+                 if (moves[i][0] >=9 || moves[i][1] >=9){
+                     legalMoves.remove(moves[i]);
+                 }
+             }
          }
     }
     class Bishop extends Piece
@@ -786,6 +791,11 @@ public class MyGdxGame extends ApplicationAdapter {
              int[] move8 = {this.pieceX-1,this.pieceY+1};
              int[][] moves ={move1, move2, move3, move4, move5, move6, move7, move8};
              Collections.addAll(legalMoves,moves);  
+             for (int i = 0; i<8; i++){
+                 if (moves[i][0] >=9 || moves[i][1] >=9){
+                     legalMoves.remove(moves[i]);
+                 }
+             }
          }
          }
 
@@ -894,8 +904,8 @@ public class MyGdxGame extends ApplicationAdapter {
 	@Override
 	public void render () {
                Gdx.gl.glClearColor(1, 0, 0, 1);
-               Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); 
-               if (turnNumber > lastTurnNumber){
+               Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+               if (turnNumber > lastTurnNumber){ //releading the legal moves for each piece
                for (int i=0; i<knightList.size(); i++){
                    knightList.get(i).createLegalMoves();
                }
@@ -917,193 +927,241 @@ public class MyGdxGame extends ApplicationAdapter {
                }
                lastTurnNumber++;
                }
-               if (turnNumber%2 == 0){
+               if (turnNumber%2 == 0){ //The Ai goes on even numbered turns
+                   //this is all defining variables to be used down below 
+                   Piece pieceToMove = null;
                     ArrayList <int[]> availableMoves = new ArrayList();
                     int listConfirmed = 0;
-                    while(listConfirmed == 0){
+                    int moveConfirmed = 0;
+                    int selectedMove = 0; 
                     ArrayList <Piece> blackPieces = new ArrayList();
+                    //creating a list of only black pieces
                     for(int i = 0; i < pieceList.size(); i++){
-                         if (pieceList.get(i).getColor() == 1){
+                         if (pieceList.get(i).getColor() == 0){
                               blackPieces.add(pieceList.get(i));
                               }
+                         }
+                    //looping till a valid list of moves is generated (non-empty)
+                    while(listConfirmed == 0){
+                    int selectPiece = (int)(Math.random() * blackPieces.size());  //generating the random piece to use
+                    pieceToMove = blackPieces.get(selectPiece);
+                    availableMoves.addAll(pieceToMove.getLegalMoves()); //creating a list of moves for the chosen piece
+                    overlapChecker:
+                    while (true) {
+                    for (int j = 0; j<availableMoves.size(); j++){ //looping through each move to get rid of bad ones
+                        for (int k = 0; k<blackPieces.size(); k++){ //looping throug each piece to avoid overlap to reduce the list of available moves to non-overlapping ones
+                            if ((blackPieces.get(k).isPieceAt(availableMoves.get(j)[0], availableMoves.get(j)[1]) == 1)
+                                    || (availableMoves.get(j)[0] == kingList.get(0).getPieceX() && availableMoves.get(j)[1] == kingList.get(0).getPieceY())){ //checking for overlap with friendlies or with the enemy king. You can't take the enemy king.
+                                availableMoves.remove(j);
+                                continue overlapChecker;
+                            
+                            }
+                            else{
+                                continue;
+                            }
+                        }
                     }
-                    int selectPiece = (int)(Math.random() * blackPieces.size());
-                    Piece pieceToMove = blackPieces.get(selectPiece);
-                    availableMoves.addAll(selectedPiece.getLegalMoves());
-                    if (availableMoves.size() == 0){
+                    break;
+                    }
+                    if (availableMoves.isEmpty()){ //checking if the list is empty. If so, start over.
                          continue;
                     }
                     else{
-                         listConfirmed = 1;
+                         listConfirmed = 1; //otherwise finish
                     }   
                     }
-                    int selectedMove = (int)(Math.random()*availableMoves.size());
-                    selectedPiece.setPos(availableMoves.get(selectedMove)[0], availableMoves.get(selectedMove)[1]);
-                    if (selectedPiece instanceof Pawn){
-                         int index = pawnList.indexOf(selectedPiece);
-                         pawnSpriteList.set(index, ((Pawn)selectedPiece).getSprite());
+                    pieceToMove.setPos(availableMoves.get(selectedMove)[0], availableMoves.get(selectedMove)[1]);
+                   for (int j = 0; j<pieceList.size(); j++){ //looping through the list of pieces to see if black took a piece
+                        Piece currentPiece = pieceList.get(j);
+                        if (currentPiece.getPieceX() == availableMoves.get(selectedMove)[0] //checking if black has taken a piece
+                                && currentPiece.getPieceY() == availableMoves.get(selectedMove)[1] 
+                                && currentPiece.getColor() == 1){
+                                    pieceList.remove(j);
+                                    if (currentPiece instanceof Pawn) {
+                                         pawnSpriteList.remove(pawnList.indexOf(((Pawn)currentPiece))); //removes the piece from the spritelist
+                                         pawnList.remove(pawnList.indexOf((Pawn)currentPiece)); //removes the pawn from the pawnlist
+                                    }
+                                    if (currentPiece instanceof Knight) {
+                                         knightSpriteList.remove(knightList.indexOf(((Knight)currentPiece))); //removes the piece from the spritelist
+                                         knightList.remove(knightList.indexOf((Knight)currentPiece)); //removes the knight from the pawnlist
+                                    }
+                                    if (currentPiece instanceof Bishop) {
+                                         bishopSpriteList.remove(bishopList.indexOf(((Bishop)currentPiece))); //removes the piece from the spritelist
+                                         bishopList.remove(bishopList.indexOf((Bishop)currentPiece)); //removes the bishop from the list
+                                    }
+                                    if (currentPiece instanceof Rook) {
+                                         rookSpriteList.remove(rookList.indexOf(((Rook)currentPiece))); //removes the piece from the spritelist
+                                         rookList.remove(rookList.indexOf((Rook)currentPiece)); //removes the rook from the list
+                                    }
+                                    if (currentPiece instanceof Queen) {
+                                         queenSpriteList.remove(queenList.indexOf(((Queen)currentPiece))); //removes the piece from the spritelist
+                                         queenList.remove(queenList.indexOf((Queen)currentPiece)); //removes the queen from the list
+                                    }
+                        } 
+                    } 
+                    if (pieceToMove instanceof Pawn){
+                         int index = pawnList.indexOf(pieceToMove);
+                         pawnSpriteList.set(index, ((Pawn)pieceToMove).getSprite());
                     }
-                    if (selectedPiece instanceof Bishop) {
-                         int index = bishopList.indexOf(selectedPiece);
-                         bishopSpriteList.set(index, ((Bishop)selectedPiece).getSprite());
+                    if (pieceToMove instanceof Bishop) {
+                         int index = bishopList.indexOf(pieceToMove);
+                         bishopSpriteList.set(index, ((Bishop)pieceToMove).getSprite());
                     }
-                    if (selectedPiece instanceof Knight) {
-                         int index = knightList.indexOf(selectedPiece);
-                         knightSpriteList.set(index, ((Knight)selectedPiece).getSprite());
+                    if (pieceToMove instanceof Knight) {
+                         int index = knightList.indexOf(pieceToMove);
+                         knightSpriteList.set(index, ((Knight)pieceToMove).getSprite());
                     }
-                    if (selectedPiece instanceof Rook) {
-                          int index = rookList.indexOf(selectedPiece);
-                          rookSpriteList.set(index, ((Rook)selectedPiece).getSprite());
+                    if (pieceToMove instanceof Rook) {
+                          int index = rookList.indexOf(pieceToMove);
+                          rookSpriteList.set(index, ((Rook)pieceToMove).getSprite());
                     }
-                    if (selectedPiece instanceof Queen) {
-                          int index = queenList.indexOf(selectedPiece);
-                          queenSpriteList.set(index, ((Queen)selectedPiece).getSprite());
+                    if (pieceToMove instanceof Queen) {
+                          int index = queenList.indexOf(pieceToMove);
+                          queenSpriteList.set(index, ((Queen)pieceToMove).getSprite());
                     }
-                    if (selectedPiece instanceof King) {
-                          int index = kingList.indexOf(selectedPiece);
-                          kingSpriteList.set(index, ((King)selectedPiece).getSprite());
+                    if (pieceToMove instanceof King) {
+                          int index = kingList.indexOf(pieceToMove);
+                          kingSpriteList.set(index, ((King)pieceToMove).getSprite());
                     }
                     turnNumber++;
                          
                          
                }
-               else{
-               if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //checking if mouse is clicked
-                   try        //waiting a bit so it doesn't register two clicks
-                   {
-                       Thread.sleep(100);
-                   } 
-                       catch(InterruptedException ex) 
-                   {
-                       Thread.currentThread().interrupt();
-                   }
-                   mouseClicked = 1;
-                   }
-               if (mouseClicked == 1 && legalMovesShown==0){ //checking if mouse is clicked and ensuring that legal moves haven't already been shown on screen
-                   try        //waiting a bit so it doesn't register two clicks
-                   {
-                       Thread.sleep(100);
-                   } 
-                       catch(InterruptedException ex) 
-                   {
-                       Thread.currentThread().interrupt();
-                   }
-                   for (int i=0; i<pieceList.size(); i++){ //looping theough the list of pieces
-                       Piece currentPiece = pieceList.get(i); 
-                       if (currentPiece.isPieceAt(getCursorX(), getCursorY()) == 1) //Checking if a piece was clicked
-                       {
-                          selectedPiece = currentPiece;
-                           for (int j=0; j<currentPiece.getLegalMoves().size(); j++){ //looping through legal moves
-                               int[] currentMove = currentPiece.getLegalMoves().get(j); //gets the 2 element array containing the legal move
-                           squareLoop: //label to allow inner loop to control outer loop
-                               for (int k=0; k<squareObjList.size(); k++){ //looking for the squares that corresponds to a legal move
-                                   Square currentSquare = squareObjList.get(k);
-                                   int currentSquareX = currentSquare.getxRow();
-                                   int currentSquareY = currentSquare.getyRow();
-                                   if (currentSquare.checkSquareXY(currentMove[0], currentMove[1]) == 1){ //finding the square that corresponds to a legal move's coordinates
-                                       for (int l=0; l<pieceList.size(); l++){ //looping through piecelist again to look for a friendly piece in the line of fire
-                                            Piece thisPiece = pieceList.get(l);
-                                            if ((thisPiece.isPieceAt(currentSquareX,currentSquareY) == 1) && (thisPiece.getColor() == currentPiece.getColor())){ //not counting that square as a legal move if so
-                                                continue squareLoop;
-                                            }
-                                       }
-                                                 currentSquare.setColor(2);
-                                                 spriteSquareList.set(k,currentSquare.getSpriteSquare()); //turning the square with a legal move yellow
-                                                 legalMoveSquares.add(currentSquare);
-                                                 legalMovesShown = 1;
-                                                 mouseClicked = 0;
-                                   }
-                               }
-                           }
-                           
-                       }
-                       
-                   }
-               }
-               else if ((mouseClicked == 1) && (legalMovesShown == 1)){ //checking if legal moves have already been shown on screen
-                   legalMovesShown = 0;
-                   for (int i = 0; i<legalMoveSquares.size(); i++){ //looping through the list of squares corresponding to legal moves
-                       Square currentSquare = legalMoveSquares.get(i);
-                       int currentX = currentSquare.getxRow();
-                       int currentY = currentSquare.getyRow();
-                       if (currentX == getCursorX() && currentY == getCursorY()){ //checking if you clicked on a highlighted square
-                           System.out.println("click");
-                           for (int j=0; j<pieceList.size(); j++){ //checking if there's an enemy piece on the square you clicked. This is what allows you to take pieces. 
-                               Piece checkingPiece = pieceList.get(j);
-                               if ((checkingPiece.isPieceAt(currentX, currentY) == 1) && (checkingPiece.getColor() != selectedPiece.getColor())){ //if there's a piece at the square we're checking on
-                                   if (checkingPiece instanceof Pawn) {
-                                        pawnSpriteList.remove(pawnList.indexOf(((Pawn)checkingPiece))); //removes the piece from the spritelist
-                                        pawnList.remove(pawnList.indexOf((Pawn)checkingPiece)); //removes the pawn from the pawnlist
-                                   }
-                                   if (checkingPiece instanceof Knight) {
-                                        knightSpriteList.remove(knightList.indexOf(((Knight)checkingPiece))); //removes the piece from the spritelist
-                                        knightList.remove(knightList.indexOf((Knight)checkingPiece)); //removes the knight from the pawnlist
-                                   }
-                                   if (checkingPiece instanceof Bishop) {
-                                        bishopSpriteList.remove(bishopList.indexOf(((Bishop)checkingPiece))); //removes the piece from the spritelist
-                                        bishopList.remove(bishopList.indexOf((Bishop)checkingPiece)); //removes the bishop from the list
-                                   }
-                                   if (checkingPiece instanceof Rook) {
-                                        rookSpriteList.remove(rookList.indexOf(((Rook)checkingPiece))); //removes the piece from the spritelist
-                                        rookList.remove(rookList.indexOf((Rook)checkingPiece)); //removes the rook from the list
-                                   }
-                                   if (checkingPiece instanceof Queen) {
-                                        queenSpriteList.remove(queenList.indexOf(((Queen)checkingPiece))); //removes the piece from the spritelist
-                                        queenList.remove(queenList.indexOf((Queen)checkingPiece)); //removes the queen from the list
-                                   }
-                                   if (checkingPiece instanceof King) {
-                                        kingSpriteList.remove(kingList.indexOf(((King)checkingPiece))); //removes the piece from the spritelist
-                                        kingList.remove(kingList.indexOf((King)checkingPiece)); //removes the king from the list
-                                   }
+               else if (turnNumber%2 ==1){
+                if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //checking if mouse is clicked
+                    try        //waiting a bit so it doesn't register two clicks
+                    {
+                        Thread.sleep(100);
+                    } 
+                        catch(InterruptedException ex) 
+                    {
+                        Thread.currentThread().interrupt();
+                    }
+                    mouseClicked = 1;
+                    }
+                if (mouseClicked == 1 && legalMovesShown==0){ //checking if mouse is clicked and ensuring that legal moves haven't already been shown on screen
+                    try        //waiting a bit so it doesn't register two clicks
+                    {
+                        Thread.sleep(100);
+                    } 
+                        catch(InterruptedException ex) 
+                    {
+                        Thread.currentThread().interrupt();
+                    }
+                    for (int i=0; i<pieceList.size(); i++){ //looping theough the list of pieces
+                        Piece currentPiece = pieceList.get(i); 
+                        if (currentPiece.isPieceAt(getCursorX(), getCursorY()) == 1 && (currentPiece.getColor() == 1)) //Checking if a piece was clicked
+                        {
+                           selectedPiece = currentPiece;
+                            for (int j=0; j<currentPiece.getLegalMoves().size(); j++){ //looping through legal moves
+                                int[] currentMove = currentPiece.getLegalMoves().get(j); //gets the 2 element array containing the legal move
+                            squareLoop: //label to allow inner loop to control outer loop
+                                for (int k=0; k<squareObjList.size(); k++){ //looking for the squares that corresponds to a legal move
+                                    Square currentSquare = squareObjList.get(k);
+                                    int currentSquareX = currentSquare.getxRow();
+                                    int currentSquareY = currentSquare.getyRow();
+                                    if (currentSquare.checkSquareXY(currentMove[0], currentMove[1]) == 1){ //finding the square that corresponds to a legal move's coordinates
+                                        for (int l=0; l<pieceList.size(); l++){ //looping through piecelist again to look for a friendly piece in the line of fire
+                                             Piece thisPiece = pieceList.get(l);
+                                             if ((thisPiece.isPieceAt(currentSquareX,currentSquareY) == 1) && (thisPiece.getColor() == currentPiece.getColor())){ //not counting that square as a legal move if so
+                                                 continue squareLoop;
+                                             }
+                                        }
+                                                  currentSquare.setColor(2);
+                                                  spriteSquareList.set(k,currentSquare.getSpriteSquare()); //turning the square with a legal move yellow
+                                                  legalMoveSquares.add(currentSquare);
+                                                  legalMovesShown = 1;
+                                                  mouseClicked = 0;
+                                    }
+                                }
+                            }
 
-                                  pieceList.remove(j);
-                                  continue;
-                               }
-                           }
-                           selectedPiece.setPos(getCursorX(), getCursorY());
-                           if (selectedPiece instanceof Pawn) {
-                               int index = pawnList.indexOf((Pawn)selectedPiece); //finds the index of the selected pawn. pawnList and pawnSpriteList are indexed the same way
-                               pawnSpriteList.set(index, ((Pawn)selectedPiece).getSprite()); //changes the spritelist so the piece is drawn at its new location
-                           }
-                           if (selectedPiece instanceof Knight){
-                               int index = knightList.indexOf((Knight)selectedPiece);
-                               knightSpriteList.set(index,((Knight)selectedPiece).getSprite());
-                           }
-                           if (selectedPiece instanceof Bishop){
-                               int index = bishopList.indexOf((Bishop)selectedPiece);
-                               bishopSpriteList.set(index,((Bishop)selectedPiece).getSprite());
-                           }
-                           if (selectedPiece instanceof Rook){
-                               int index = rookList.indexOf((Rook)selectedPiece);
-                               rookSpriteList.set(index,((Rook)selectedPiece).getSprite());
-                           }
-                           if (selectedPiece instanceof Queen){
-                               int index = queenList.indexOf((Queen)selectedPiece);
-                               queenSpriteList.set(index,((Queen)selectedPiece).getSprite());
-                           }
-                           if (selectedPiece instanceof King){
-                               int index = kingList.indexOf((King)selectedPiece);
-                               kingSpriteList.set(index,((King)selectedPiece).getSprite());
-                           }
-                           System.out.println("wtf" + turnNumber);
-                       turnNumber++;
-                       }
-                       if (legalMovesShown == 0){ //resetting square colors
-                           if (currentSquare.getyRow() % 2 == 0) { //if row is even
-                               if (currentSquare.getxRow() % 2 == 0) {currentSquare.setColor(1);} //if column is odd make it red
-                               else {currentSquare.setColor(0);}
-                           }
-                           else{ //if row is odd
-                               if (currentSquare.getxRow() % 2 == 0) {currentSquare.setColor(0);} //if column is even make the square white
-                               else {currentSquare.setColor(1);}
-                           }
-                           int squareIndex = squareObjList.indexOf(currentSquare); //finding the index of the selected square
-                           spriteSquareList.set(squareIndex, currentSquare.getSpriteSquare()); //adding the changed square to the list to be drawn
-                           mouseClicked = 0;
-                       }  
-                                      }
-                   legalMoveSquares = new ArrayList<Square>(); //clearing legalMoveSquares list
-               }
+                        }
+
+                    }
+                }
+                else if ((mouseClicked == 1) && (legalMovesShown == 1)){ //checking if legal moves have already been shown on screen
+                    legalMovesShown = 0;
+                    for (int i = 0; i<legalMoveSquares.size(); i++){ //looping through the list of squares corresponding to legal moves
+                        Square currentSquare = legalMoveSquares.get(i);
+                        int currentX = currentSquare.getxRow();
+                        int currentY = currentSquare.getyRow();
+                        if (currentX == getCursorX() && currentY == getCursorY()){ //checking if you clicked on a highlighted square
+                            for (int j=0; j<pieceList.size(); j++){ //checking if there's an enemy piece on the square you clicked. This is what allows you to take pieces. 
+                                Piece checkingPiece = pieceList.get(j);
+                                if ((checkingPiece.isPieceAt(currentX, currentY) == 1) && (checkingPiece.getColor() != selectedPiece.getColor())){ //if there's a piece at the square we're checking on
+                                    if (checkingPiece instanceof Pawn) {
+                                         pawnSpriteList.remove(pawnList.indexOf(((Pawn)checkingPiece))); //removes the piece from the spritelist
+                                         pawnList.remove(pawnList.indexOf((Pawn)checkingPiece)); //removes the pawn from the pawnlist
+                                    }
+                                    if (checkingPiece instanceof Knight) {
+                                         knightSpriteList.remove(knightList.indexOf(((Knight)checkingPiece))); //removes the piece from the spritelist
+                                         knightList.remove(knightList.indexOf((Knight)checkingPiece)); //removes the knight from the pawnlist
+                                    }
+                                    if (checkingPiece instanceof Bishop) {
+                                         bishopSpriteList.remove(bishopList.indexOf(((Bishop)checkingPiece))); //removes the piece from the spritelist
+                                         bishopList.remove(bishopList.indexOf((Bishop)checkingPiece)); //removes the bishop from the list
+                                    }
+                                    if (checkingPiece instanceof Rook) {
+                                         rookSpriteList.remove(rookList.indexOf(((Rook)checkingPiece))); //removes the piece from the spritelist
+                                         rookList.remove(rookList.indexOf((Rook)checkingPiece)); //removes the rook from the list
+                                    }
+                                    if (checkingPiece instanceof Queen) {
+                                         queenSpriteList.remove(queenList.indexOf(((Queen)checkingPiece))); //removes the piece from the spritelist
+                                         queenList.remove(queenList.indexOf((Queen)checkingPiece)); //removes the queen from the list
+                                    }
+                                    if (checkingPiece instanceof King) {
+                                         kingSpriteList.remove(kingList.indexOf(((King)checkingPiece))); //removes the piece from the spritelist
+                                         kingList.remove(kingList.indexOf((King)checkingPiece)); //removes the king from the list
+                                    }
+
+                                   pieceList.remove(j);
+                                   continue;
+                                }
+                            }
+                            selectedPiece.setPos(getCursorX(), getCursorY());
+                            if (selectedPiece instanceof Pawn) {
+                                int index = pawnList.indexOf((Pawn)selectedPiece); //finds the index of the selected pawn. pawnList and pawnSpriteList are indexed the same way
+                                pawnSpriteList.set(index, ((Pawn)selectedPiece).getSprite()); //changes the spritelist so the piece is drawn at its new location
+                            }
+                            if (selectedPiece instanceof Knight){
+                                int index = knightList.indexOf((Knight)selectedPiece);
+                                knightSpriteList.set(index,((Knight)selectedPiece).getSprite());
+                            }
+                            if (selectedPiece instanceof Bishop){
+                                int index = bishopList.indexOf((Bishop)selectedPiece);
+                                bishopSpriteList.set(index,((Bishop)selectedPiece).getSprite());
+                            }
+                            if (selectedPiece instanceof Rook){
+                                int index = rookList.indexOf((Rook)selectedPiece);
+                                rookSpriteList.set(index,((Rook)selectedPiece).getSprite());
+                            }
+                            if (selectedPiece instanceof Queen){
+                                int index = queenList.indexOf((Queen)selectedPiece);
+                                queenSpriteList.set(index,((Queen)selectedPiece).getSprite());
+                            }
+                            if (selectedPiece instanceof King){
+                                int index = kingList.indexOf((King)selectedPiece);
+                                kingSpriteList.set(index,((King)selectedPiece).getSprite());
+                            }
+                        turnNumber++;
+                        }
+                        if (legalMovesShown == 0){ //resetting square colors
+                            if (currentSquare.getyRow() % 2 == 0) { //if row is even
+                                if (currentSquare.getxRow() % 2 == 0) {currentSquare.setColor(1);} //if column is odd make it red
+                                else {currentSquare.setColor(0);}
+                            }
+                            else{ //if row is odd
+                                if (currentSquare.getxRow() % 2 == 0) {currentSquare.setColor(0);} //if column is even make the square white
+                                else {currentSquare.setColor(1);}
+                            }
+                            int squareIndex = squareObjList.indexOf(currentSquare); //finding the index of the selected square
+                            spriteSquareList.set(squareIndex, currentSquare.getSpriteSquare()); //adding the changed square to the list to be drawn
+                            mouseClicked = 0;
+                        }  
+                                       }
+                    legalMoveSquares = new ArrayList<Square>(); //clearing legalMoveSquares list
+                }
                }
                batch.enableBlending();
                batch.begin();    
