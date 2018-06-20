@@ -760,11 +760,13 @@ public class MyGdxGame extends ApplicationAdapter {
     }
     class King extends Piece
     {
+        int inCheck = 0;
         King(int pieceX, int pieceY, int pieceColor){
               super(pieceX, pieceY, pieceColor);
               this.pieceX=pieceX; //1 to 8
               this.pieceY=pieceY; //1 to 8
               this.pieceColor=pieceColor; //white = 0 black = 1
+              this.inCheck = inCheck;
         }
         Sprite getSprite(){
               Texture Texture = new Texture("king_w.png");
@@ -779,6 +781,28 @@ public class MyGdxGame extends ApplicationAdapter {
               return thisPiece;
 
          }
+        int getInCheck(){
+            return this.inCheck;
+        }
+        void setInCheck(){ //1 is in check, 0 is not in check
+            firstloop:
+            for (int i=0; i<pieceList.size(); i++){ //looping through the list of pieces
+                Piece currentPiece = pieceList.get(i); 
+                if (currentPiece.getLegalMoves().isEmpty()){ //making sure the program doesn't crash if a piece has no legal moves
+                    continue;
+                }
+                for (int j=0; j<currentPiece.getLegalMoves().size(); j++){ //looping through the current piece's legal moves
+                    ArrayList <int[]> currentMoveList = currentPiece.getLegalMoves();
+                    if (this.isPieceAt(currentMoveList.get(j)[0], currentMoveList.get(j)[1]) == 1){ //checking if the king is in check
+                        this.inCheck = 1;
+                        break firstloop;
+                    }
+                    else{
+                        this.inCheck = 0;
+                    }
+                }
+            }
+        }
          void createLegalMoves(){
              this.legalMoves = new ArrayList<int[]>();
              int[] move1 = {this.pieceX,this.pieceY+1};
@@ -791,11 +815,20 @@ public class MyGdxGame extends ApplicationAdapter {
              int[] move8 = {this.pieceX-1,this.pieceY+1};
              int[][] moves ={move1, move2, move3, move4, move5, move6, move7, move8};
              Collections.addAll(legalMoves,moves);  
-             for (int i = 0; i<8; i++){
+             for (int i = 0; i<8; i++){ //looping through the moves preventing the king from moving offscreen
                  if (moves[i][0] >=9 || moves[i][1] >=9){
                      legalMoves.remove(moves[i]);
                  }
              }
+             for (int i = 0; i<8; i++){
+                 this.setPos(moves[i][0], moves[i][1]);
+                 this.setInCheck();
+                 if (this.inCheck == 1){
+                     legalMoves.remove(moves[i]);
+                 }
+                 
+             }
+             this.setPos(this.pieceX, this.pieceY);
          }
          }
 
@@ -927,7 +960,7 @@ public class MyGdxGame extends ApplicationAdapter {
                }
                lastTurnNumber++;
                }
-               if (turnNumber%2 == 0){ //The Ai goes on even numbered turns
+               if (turnNumber%2 == 0){ //Handling the Ai's actions
                    //this is all defining variables to be used down below 
                    Piece pieceToMove = null;
                     ArrayList <int[]> availableMoves = new ArrayList();
@@ -1027,7 +1060,7 @@ public class MyGdxGame extends ApplicationAdapter {
                          
                          
                }
-               else if (turnNumber%2 ==1){
+               else if (turnNumber%2 ==1){ //handling the player's actions
                 if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //checking if mouse is clicked
                     try        //waiting a bit so it doesn't register two clicks
                     {
@@ -1063,7 +1096,8 @@ public class MyGdxGame extends ApplicationAdapter {
                                     if (currentSquare.checkSquareXY(currentMove[0], currentMove[1]) == 1){ //finding the square that corresponds to a legal move's coordinates
                                         for (int l=0; l<pieceList.size(); l++){ //looping through piecelist again to look for a friendly piece in the line of fire
                                              Piece thisPiece = pieceList.get(l);
-                                             if ((thisPiece.isPieceAt(currentSquareX,currentSquareY) == 1) && (thisPiece.getColor() == currentPiece.getColor())){ //not counting that square as a legal move if so
+                                             if ((thisPiece.isPieceAt(currentSquareX,currentSquareY) == 1) && (thisPiece.getColor() == currentPiece.getColor())
+                                                || (kingList.get(1).isPieceAt(currentSquareX, currentSquareY) == 1)){ //not counting that square as a legal move if so
                                                  continue squareLoop;
                                              }
                                         }
@@ -1110,10 +1144,7 @@ public class MyGdxGame extends ApplicationAdapter {
                                          queenSpriteList.remove(queenList.indexOf(((Queen)checkingPiece))); //removes the piece from the spritelist
                                          queenList.remove(queenList.indexOf((Queen)checkingPiece)); //removes the queen from the list
                                     }
-                                    if (checkingPiece instanceof King) {
-                                         kingSpriteList.remove(kingList.indexOf(((King)checkingPiece))); //removes the piece from the spritelist
-                                         kingList.remove(kingList.indexOf((King)checkingPiece)); //removes the king from the list
-                                    }
+                                    
 
                                    pieceList.remove(j);
                                    continue;
